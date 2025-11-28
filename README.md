@@ -1,70 +1,109 @@
-# 🧠 BTC Churn Prediction & MLOps Automation (n8n + BigQuery + Looker)
 
-Este proyecto es una solución profesional sin código para predecir y monitorear la pérdida de usuarios (churn) en plataformas de minería de Bitcoin. Utiliza n8n, Google BigQuery y Looker Studio para automatizar análisis, predicciones, reportes y alertas.
+# Bitcoin Mining Churn Prediction & Monitoring Platform
 
-## 🔹 ¿Qué hace este proyecto?
+## Overview
 
-- Predice diariamente la probabilidad de abandono de usuarios.
-- Entrena modelos de ML en BigQuery (manual o automatizado).
-- Evalúa semanalmente el rendimiento del modelo.
-- Envía reportes mensuales inteligentes por Slack y Email.
-- Visualiza resultados en Looker Studio (enlace simulado).
-- Todo 100% automatizado con n8n.
+This repository provides a **professional no-code solution** to **predict and monitor user churn** on Bitcoin mining platforms. Leveraging the power of [n8n](https://n8n.io), Google BigQuery, and Looker Studio, the system automates:
 
-## ⚙️ Tecnologías usadas
+- Data ingestion and transformation
+- Predictive churn modeling
+- Performance tracking
+- Reporting and alerting workflows
 
-- [n8n](https://n8n.io) – Automatización de flujos sin código.
-- [Google BigQuery](https://cloud.google.com/bigquery) – Almacenamiento y entrenamiento de modelos ML.
-- [Looker Studio](https://lookerstudio.google.com) – Visualización de datos y métricas.
-- Slack + Email – Notificaciones automáticas al equipo.
-
-## 📊 Flujos incluidos
-
-| Nombre del Workflow | Frecuencia | Función |
-|---------------------|------------|---------|
-| `btc_monitor_workflow` | cada 6h | ETL de minería y rentabilidad |
-| `pi_loop_prediction_workflow` | diario | Predicción de churn usando ML |
-| `mlops_performance_reporter` | semanal | Evalúa el modelo y alerta |
-| `train_model_workflow` | manual | Entrena el modelo desde n8n |
-| `monthly_churn_report` | mensual | Reporte ejecutivo con métricas clave |
-
-## ✅ Cómo usar
-
-1. Importa los `.json` en tu instancia de n8n.
-2. Configura tus credenciales de BigQuery, Slack y Email.
-3. Crea las tablas simuladas en BigQuery (`monthly_churn_metrics`).
-4. Conecta Looker Studio al dataset de BigQuery (opcional).
-5. Disfruta de automatización profesional en minutos.
-
-## 🔐 Requisitos
-
-- Cuenta de Google Cloud con BigQuery habilitado.
-- Slack App con acceso a los canales necesarios.
-- Email SMTP o cuenta de Gmail para nodos de correo.
-
-## 📁 Estructura
-
-```
-├── workflows/
-│   ├── btc_monitor_workflow.json
-│   ├── pi_loop_prediction_workflow.json
-│   ├── mlops_performance_reporter.json
-│   ├── train_model_workflow.json
-│   └── monthly_churn_report.json
-├── sql/
-│   ├── create_model.sql
-│   ├── evaluate_model.sql
-│   └── predict_production.sql
-```
-
-## 👨‍💼 Ideal para
-
-- Portafolios de automatización y ciencia de datos.
-- Pruebas de concepto para equipos de analítica.
-- Ejemplo de solución MLOps sin escribir código.
+This platform is designed for scalability and ease of deployment using **n8n (self-hosted)**, providing a fully automated, end-to-end MLOps lifecycle.
 
 ---
 
-## 📝 License
+## Features
 
-Este proyecto es de código abierto bajo la licencia MIT. Consulta `LICENSE.md` para más información.
+- 🧠 **Predictive Modeling**: Automates training, evaluation, and deployment of churn models.
+- 📈 **Performance Monitoring**: Automatically generates and distributes performance metrics.
+- 📊 **Reporting**: Generates churn reports and visualizes them using Looker Studio.
+- 🔔 **Alerting**: Sends notifications for anomalies or performance degradation.
+- 🧩 **Modular Workflows**: Designed as reusable n8n workflows with SQL-based data operations.
+
+---
+
+## Tech Stack
+
+- [n8n (Self-hosted)](https://docs.n8n.io/)
+- Google BigQuery
+- Looker Studio
+- SQL for model evaluation and prediction
+- JavaScript for advanced data processing in n8n
+
+---
+
+## Repository Structure
+
+```
+.
+├── workflows/                  # n8n JSON workflows
+│   ├── btc_monitor_workflow.json
+│   ├── error_handler_global.json
+│   ├── mlops_performance_reporter.json
+│   ├── monthly_churn_report.json
+│   ├── pi_loop_prediction_workflow.json
+│   └── train_model_workflow.json
+├── sql/                        # SQL scripts for BigQuery operations
+│   ├── create_model.sql
+│   ├── evaluate_model.sql
+│   └── predict_production.sql
+├── LICENSE.md
+└── .gitignore
+```
+
+---
+
+## Setup Instructions
+
+### 1. Prerequisites
+
+- A running instance of **n8n (self-hosted)**
+- Google Cloud Project with:
+  - BigQuery dataset & tables
+  - Service Account credentials (JSON)
+- Looker Studio account for dashboarding
+
+---
+
+### 2. Import Workflows into n8n
+
+1. Open your n8n instance.
+2. Navigate to **Workflows → Import from File**.
+3. Import each `.json` file from the `workflows/` directory.
+
+---
+
+### 3. Configure Credentials
+
+In n8n:
+
+- Create new credentials for:
+  - **Google Cloud** (Service Account with BigQuery access)
+  - **Looker Studio** (Webhooks or connected apps if needed)
+- Assign credentials to the appropriate nodes in each workflow.
+
+---
+
+### 4. Setup Environment Variables (Optional)
+
+Use `n8n` environment variables or `Set` nodes to define:
+
+- Project ID
+- Dataset & Table names
+- Report thresholds or alert criteria
+
+---
+
+### 5. Run and Monitor
+
+- Start workflows manually or trigger via schedules (Cron node).
+- Monitor execution results directly in n8n.
+- Review Looker Studio dashboards for churn and performance insights.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE.md](./LICENSE.md) for details.
