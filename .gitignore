@@ -1,0 +1,8 @@
+# n8n export and system files
+*.zip
+*.log
+node_modules/
+.DS_Store
+.env
+.credentials.json
+*.sqlite
