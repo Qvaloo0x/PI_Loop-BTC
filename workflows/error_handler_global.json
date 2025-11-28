@@ -1,0 +1,48 @@
+{
+  "name": "Global Error Handler (404/System Fails)",
+  "description": "Dedicated MLOps workflow to capture and escalate critical system failures from other workflows (A, B, C).",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": [
+          {
+            "condition": "={{ $json.context.execution.status === 'errored' }}"
+          }
+        ]
+      },
+      "name": "Catch Workflow Failure",
+      "type": "n8n-nodes-base.catch",
+      "typeVersion": 1,
+      "id": "D1",
+      "notes": "Configured to catch errors from the three core workflows (A, B, C)."
+    },
+    {
+      "parameters": {
+        "text": "\ud83d\udea8 CRITICAL FAILURE \ud83d\udea8\n\n**Workflow:** {{ $json.context.workflow.name }}\n**Error:** {{ $json.context.error.message }}\n**Time:** {{ new Date().toISOString() }}\n\nAction Required: The BTC Monitor ETL or ML Prediction Pipeline has failed to run. Check BigQuery status.",
+        "options": {
+          "channel": "#critical-ops-alerts"
+        }
+      },
+      "name": "Send Critical Ops Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "id": "D2",
+      "position": [
+        400,
+        750
+      ]
+    }
+  ],
+  "connections": {
+    "D1": {
+      "main": [
+        [
+          {
+            "node": "D2",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

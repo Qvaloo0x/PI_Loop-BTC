@@ -1,0 +1,106 @@
+{
+  "name": "MLOps Performance Reporter",
+  "description": "Non-Code MLOps Pipeline: Executes weekly ML.EVALUATE and loads metrics to the dashboard table.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "value": 1
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger (Weekly)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "id": "C1"
+    },
+    {
+      "parameters": {
+        "query": "-- PI_Loop BTC: BQML Model Evaluation SQL (Executed by n8n weekly for MLOps reporting)\n\nSELECT\n  *\nFROM\n  ML.EVALUATE(MODEL `pi_loop.churn_prediction_model`,\n    (\n      -- Re-select the features used for prediction, but use the most recent 30 days of data for validation.\n      SELECT\n        t1.days_since_last_login,\n        t1.current_hash_power_ghs,\n        t1.profit_withdrawal_count,\n        t1.churn_30_day_label,\n        t2.mining_profitability_index\n      FROM\n        `pi_loop_data.user_transaction_data` AS t1\n      JOIN\n        `pi_loop_data.global_mining_features` AS t2\n      ON\n        t2.feature_date = (SELECT MAX(feature_date) FROM `pi_loop_data.global_mining_features`)\n      WHERE\n        -- Assuming a 'date_added' column exists for proper time-slicing\n        _PARTITIONTIME >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)\n    )\n  )",
+        "options": {}
+      },
+      "name": "Execute ML.EVALUATE (SQL)",
+      "type": "n8n-nodes-google.bigQuery",
+      "typeVersion": 2,
+      "id": "C2",
+      "position": [
+        400,
+        650
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "dashboard_metrics",
+        "options": {
+          "schema": "pi_loop_data",
+          "columnMap": {
+            "f1_score": "={{ $json.f1_score }}",
+            "recall": "={{ $json.recall }}",
+            "date": "={{ new Date().toISOString() }}"
+          }
+        }
+      },
+      "name": "Load Metrics to Dashboard Table",
+      "type": "n8n-nodes-google.bigQuery",
+      "typeVersion": 1,
+      "id": "C3",
+      "position": [
+        650,
+        650
+      ]
+    },
+    {
+      "parameters": {
+        "body": "MODEL HEALTH REPORT: Weekly F1-Score is {{ $json.f1_score | round(2) }}.",
+        "options": {
+          "channel": "#mlops-health"
+        }
+      },
+      "name": "Send MLOps Health Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "id": "C4",
+      "position": [
+        900,
+        650
+      ]
+    }
+  ],
+  "connections": {
+    "C1": {
+      "main": [
+        [
+          {
+            "node": "C2",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C2": {
+      "main": [
+        [
+          {
+            "node": "C3",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C3": {
+      "main": [
+        [
+          {
+            "node": "C4",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

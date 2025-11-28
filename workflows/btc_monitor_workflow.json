@@ -1,1 +1,106 @@
-
+{
+  "name": "BTC Mining Monitor ETL",
+  "description": "Non-Code ETL Pipeline to fetch macro mining features from API and load the 'mining_profitability_index' into BigQuery.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "value": 6
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger (6h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "id": "A1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/simple/price...",
+        "authentication": "none",
+        "options": {}
+      },
+      "name": "Fetch Mining Data (API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "id": "A2",
+      "position": [
+        400,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "profitability_index",
+              "value": "{{(() => {\n  const price = $json.btc_usd_price || 0;\n  const difficulty = $json.network_difficulty_t || 1;\n  return +(price * (1 / difficulty)).toFixed(2);\n})()}}"
+            }
+          ]
+        }
+      },
+      "name": "Calculate Profitability Index",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "id": "A3",
+      "position": [
+        650,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "global_mining_features",
+        "options": {
+          "schema": "pi_loop_data"
+        }
+      },
+      "name": "Load to BigQuery",
+      "type": "n8n-nodes-google.bigQuery",
+      "typeVersion": 1,
+      "id": "A4",
+      "position": [
+        900,
+        250
+      ]
+    }
+  ],
+  "connections": {
+    "A1": {
+      "main": [
+        [
+          {
+            "node": "A2",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A2": {
+      "main": [
+        [
+          {
+            "node": "A3",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A3": {
+      "main": [
+        [
+          {
+            "node": "A4",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

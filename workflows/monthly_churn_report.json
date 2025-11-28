@@ -1,0 +1,133 @@
+{
+  "name": "Monthly Churn Intelligence Report",
+  "nodes": [
+    {
+      "parameters": {
+        "interval": 1,
+        "unit": "months"
+      },
+      "name": "Monthly Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "id": 1
+    },
+    {
+      "parameters": {
+        "query": "\n-- Simulaci\u00f3n de reporte mensual de churn para portafolio\nSELECT\n  report_month,\n  total_predicted_users,\n  churn_users,\n  churn_rate,\n  model_accuracy,\n  model_name,\n  last_model_training\nFROM\n  `pi_loop_data.monthly_churn_metrics`\nORDER BY report_month DESC\nLIMIT 1\n"
+      },
+      "name": "Get Monthly Metrics (BigQuery)",
+      "type": "n8n-nodes-google.bigQuery",
+      "typeVersion": 2,
+      "position": [
+        500,
+        300
+      ],
+      "id": 2
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "report_markdown",
+              "value": "{{ (()=>{\n  const d = $json;\n  return `\ud83d\udcca *Churn Intelligence Report - ${d.report_month}*\n\n\u2022 \ud83d\udc65 *Users Predicted:* ${d.total_predicted_users}\n\u2022 \ud83d\udeaa *Churn Detected:* ${d.churn_users}\n\u2022 \ud83d\udcc9 *Churn Rate:* ${(d.churn_rate * 100).toFixed(2)}%\n\u2022 \ud83c\udfaf *Model Accuracy:* ${(d.model_accuracy * 100).toFixed(2)}%\n\u2022 \ud83e\udde0 *Model:* ${d.model_name}\n\u2022 \ud83d\udee0\ufe0f *Last Training:* ${new Date(d.last_model_training).toLocaleString()}\n\n\ud83d\udd17 [View Looker Dashboard](https://lookerstudio.google.com/reporting/your-dashboard-id)\n`;\n})() }}"
+            }
+          ]
+        }
+      },
+      "name": "Format Report Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        750,
+        300
+      ],
+      "id": 3
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.report_markdown }}",
+        "options": {
+          "channel": "#mlops-monthly"
+        }
+      },
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        250
+      ],
+      "id": 4
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@yourdomain.com",
+        "toEmail": "team@yourdomain.com",
+        "subject": "\ud83d\udcca Monthly Churn Intelligence Report",
+        "text": "={{ $json.report_markdown }}"
+      },
+      "name": "Send by Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        370
+      ],
+      "id": 5
+    }
+  ],
+  "connections": {
+    "Monthly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Monthly Metrics (BigQuery)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Monthly Metrics (BigQuery)": {
+      "main": [
+        [
+          {
+            "node": "Format Report Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Report Text": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send by Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "tags": [
+    "reporting",
+    "churn",
+    "monthly"
+  ],
+  "versionId": "1"
+}
